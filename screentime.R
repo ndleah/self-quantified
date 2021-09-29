@@ -1,3 +1,4 @@
+## Load the library ----
 library(tidyverse) # data manipulation
 library(here) # allocate file
 library(dplyr) # data manipulation
@@ -9,6 +10,10 @@ library(lubridate)
 library(patchwork)
 library(xts) # a powerful library that makes work with time series pretty easy
 library(sqldf) # using SQL
+library(reshape)
+library(tibble)
+library(ggpubr) # plot bubble plot
+library(treemapify) #plot treemap visualization
 
 #----------------------------------------------------------------
 # I. Data Wrangling ----
@@ -521,13 +526,97 @@ weekend_weekday <- melt(data=df2,
                             "Creativity","Shopping", "Other")
 )
 
+## General ----
+gen_weekdays <- sqldf( # weekdays
+  "
+  SELECT
+      variable AS category,
+      SUM(value) AS value
+    FROM weekend_weekday
+    WHERE DayType = 'Weekday'
+    GROUP BY category
+      "
+)
+# calculate percentage
+gen_weekdays <- gen_weekdays %>% 
+  arrange(desc(value)) %>%
+  mutate(prop = round(100 * value / sum(value),1))
+# get the position
+pos_gen_weekdays <- gen_weekdays %>% 
+  mutate(csum = rev(cumsum(rev(value))), 
+         pos = value/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), value/2, pos))
+
+gen_weekend <- sqldf( # weekdays
+  "
+  SELECT
+      variable AS category,
+      SUM(value) AS value
+    FROM weekend_weekday
+    WHERE DayType = 'Weekend'
+    GROUP BY category
+      "
+)
+# calculate percentage
+gen_weekend <- gen_weekend %>% 
+  arrange(desc(value)) %>%
+  mutate(prop = round(100 * value / sum(value),1))
+# get the position
+pos_gen_weekend <- gen_weekend %>% 
+  mutate(csum = rev(cumsum(rev(value))), 
+         pos = value/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), value/2, pos))
+
+### i. weekday - pie chart ----
+gw1 <- gen_weekdays %>% 
+  filter(prop > 0.01) %>% # filter out 0% value
+  ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
+  geom_bar(stat = "identity", width = 1) +
+  geom_col(color = "black", width = 1) +
+  coord_polar("y", start = 0) + 
+  geom_label_repel(data = pos_gen_weekdays %>% filter(prop > 0.01),
+                   aes(y = pos, label = paste0(prop, "%")),
+                   size = 4.5, nudge_x = 1, show.legend = FALSE) +
+  labs(
+    title = "Weekdays Distribution"
+  ) +
+  scale_fill_brewer(palette = "Reds") +
+  theme_classic() +
+  guides(fill = guide_legend(title = "categories")) +
+  ggthemes::theme_tufte() +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+### ii. weekend - pie chart ----
+gw2 <- gen_weekend %>% 
+  filter(prop > 0.01) %>% # filter out 0% value
+  ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
+  geom_bar(stat = "identity", width = 1) +
+  geom_col(color = "black", width = 1) +
+  coord_polar("y", start = 0) + 
+  geom_label_repel(data = pos_gen_weekend %>% filter(prop > 0.01),
+                   aes(y = pos, label = paste0(prop, "%")),
+                   size = 4.5, nudge_x = 1, show.legend = FALSE) +
+  labs(
+    title = "Weekend Distribution"
+  ) +
+  scale_fill_brewer(palette = "Reds") +
+  theme_classic() +
+  guides(fill = guide_legend(title = "categories")) +
+  ggthemes::theme_tufte() +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+### Plot multiple plots
+(gw1 + gw2) + plot_annotation(title = "General") & 
+  theme(plot.title = element_text(hjust = 0.5))
+
+
 ### a. Cersei ----
 # create weekdays variable
 cersei_weekdays <- sqldf( # weekdays
   "
   SELECT
       variable AS category,
-      value
+      SUM(value) AS value
     FROM weekend_weekday
     WHERE Aliases = 'Cersei'
     AND DayType = 'Weekday'
@@ -549,7 +638,7 @@ cersei_weekend <- sqldf( # weekend
   "
   SELECT
       variable AS category,
-      value
+      SUM(value) AS value
     FROM weekend_weekday
     WHERE Aliases = 'Cersei'
     AND DayType = 'Weekend'
@@ -614,7 +703,7 @@ melisandre_weekdays <- sqldf( # weekdays
   "
   SELECT
       variable AS category,
-      value
+      SUM(value) AS value
     FROM weekend_weekday
     WHERE Aliases = 'Melisandre'
     AND DayType = 'Weekday'
@@ -636,7 +725,7 @@ melisandre_weekend <- sqldf( # weekend
   "
   SELECT
       variable AS category,
-      value
+      SUM(value) AS value
     FROM weekend_weekday
     WHERE Aliases = 'Melisandre'
     AND DayType = 'Weekend'
@@ -701,7 +790,7 @@ tyrion_weekdays <- sqldf( # weekdays
   "
   SELECT
       variable AS category,
-      value
+      SUM(value) AS value
     FROM weekend_weekday
     WHERE Aliases = 'Tyrion'
     AND DayType = 'Weekday'
@@ -723,7 +812,7 @@ tyrion_weekend <- sqldf( # weekend
   "
   SELECT
       variable AS category,
-      value
+      SUM(value) AS value
     FROM weekend_weekday
     WHERE Aliases = 'Tyrion'
     AND DayType = 'Weekend'
@@ -788,7 +877,7 @@ oberyn_weekdays <- sqldf( # weekdays
   "
   SELECT
       variable AS category,
-      value
+      SUM(value) AS value
     FROM weekend_weekday
     WHERE Aliases = 'Oberyn'
     AND DayType = 'Weekday'
@@ -810,7 +899,7 @@ oberyn_weekend <- sqldf( # weekend
   "
   SELECT
       variable AS category,
-      value
+      SUM(value) AS value
     FROM weekend_weekday
     WHERE Aliases = 'Oberyn'
     AND DayType = 'Weekend'
@@ -875,7 +964,7 @@ jaqen_weekdays <- sqldf( # weekdays
   "
   SELECT
       variable AS category,
-      value
+      SUM(value) AS value
     FROM weekend_weekday
     WHERE Aliases = 'Jaqen'
     AND DayType = 'Weekday'
@@ -897,7 +986,7 @@ jaqen_weekend <- sqldf( # weekend
   "
   SELECT
       variable AS category,
-      value
+      SUM(value) AS value
     FROM weekend_weekday
     WHERE Aliases = 'Jaqen'
     AND DayType = 'Weekend'
@@ -962,7 +1051,7 @@ tormund_weekdays <- sqldf( # weekdays
   "
   SELECT
       variable AS category,
-      value
+      SUM(value) AS value
     FROM weekend_weekday
     WHERE Aliases = 'Tormund'
     AND DayType = 'Weekday'
@@ -984,7 +1073,7 @@ tormund_weekend <- sqldf( # weekend
   "
   SELECT
       variable AS category,
-      value
+      SUM(value) AS value
     FROM weekend_weekday
     WHERE Aliases = 'Tormund'
     AND DayType = 'Weekend'
@@ -1043,9 +1132,112 @@ cw12 <- tormund_weekend %>%
 (cw11 + cw12) + plot_annotation(title = "Tormund") & 
   theme(plot.title = element_text(hjust = 0.5))
 
-## 5. App with most notifications
-ggballoonplot(Screentime, x = "Weekday", y = "App", size = "notifications", fill = "notifications",
-              ggtheme = theme_bw()) +
-  scale_fill_viridis_c(option = "C")
+## 5. App with most Screen time Usage
+# create new variable
+app <- data.frame(app_name = c(df2[,"Top1"], df2[,"Top2"], 
+                               df2[,"Top3"], df2[,"Top4"], 
+                               df2[,"Top5"]),
+                         Total_STime = c(df2[,"Top1_T"], df2[,"Top2_T"], 
+                                         df2[,"Top3_T"], df2[,"Top4_T"], 
+                                         df2[,"Top5_T"]),
+                         DOW = df2["Day_of_Week"])
+# sum total screen time by app name
+app <- sqldf(
+  "
+  SELECT
+      app_name,
+      SUM(Total_STime) AS Total_STime
+    FROM app
+    GROUP BY 
+      app_name
+    ORDER BY 
+      Total_STime DESC
+    LIMIT 10
+      "
+)
+
+### Top 10 Apps with Highest Screentime Usage
+app %>%
+  group_by(app_name) %>%
+  top_n(10, Total_STime)  %>% 
+  ggplot(aes(area = Total_STime, 
+             fill = Total_STime, 
+             label = app_name)) +
+  geom_treemap() +
+  labs(title = "Top 10 Apps with Highest Screentime Usage") +
+  geom_treemap_text(fontface = "italic", 
+                    colour = "white", 
+                    place = "topleft", 
+                    reflow = T,
+                    grow = TRUE) +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+# create new variable
+tyrion_app <- data.frame(app_name = c(tyrion[,"Top1"], tyrion[,"Top2"], 
+                               tyrion[,"Top3"], tyrion[,"Top4"], 
+                               tyrion[,"Top5"]),
+                         Total_STime = c(tyrion[,"Top1_T"], tyrion[,"Top2_T"], 
+                                         tyrion[,"Top3_T"], tyrion[,"Top4_T"], 
+                                         tyrion[,"Top5_T"]),
+                          DOW = tyrion["Day_of_Week"])
+# sum total screen time by app name
+tyrion_app <- sqldf(
+  "
+  SELECT
+      app_name,
+      SUM(Total_STime) AS Total_STime,
+      Day_of_Week
+    FROM tyrion_app
+    GROUP BY 
+      app_name,
+      Day_of_Week
+    ORDER BY 
+      Day_of_Week,
+      Total_STime DESC
+      "
+)
+
+# order Day Of Week chronically
+tyrion_app$Day_of_Week <- ordered(tyrion_app$Day_of_Week, 
+                                  levels=c("Mon", "Tue", "Wed", 
+                                           "Thu", "Fri", "Sat","Sun"))
+
+tyrion_top10 <- sqldf(
+  "
+  SELECT
+      app_name,
+      SUM(Total_STime) AS Total_STime
+    FROM tyrion_app
+    GROUP BY app_name
+    ORDER BY Total_STime DESC
+    LIMIT 10
+      "
+)
+
+### Top 10 Apps with Highest Screentime Usage ----
+aw5 <- tyrion_top10 %>%
+  group_by(app_name) %>%
+  top_n(10, Total_STime)  %>% 
+  ggplot(aes(area = Total_STime, 
+             fill = Total_STime, 
+             label = app_name)) +
+  geom_treemap() +
+  labs(title = "Top 10 Apps with Highest Screentime Usage") +
+  geom_treemap_text(fontface = "italic", 
+                    colour = "white", 
+                    place = "topleft", 
+                    reflow = T,
+                    grow = TRUE) +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+
+### App Screentime Usage by Days of Week ----
+aw6 <- ggballoonplot(tyrion_app, x = "Day_of_Week", y = "app_name", size = "Total_STime", fill = "Total_STime",
+              ggtheme = theme_minimal()) +
+  labs(title = "App Screentime Usage by Days of Week") +
+  scale_fill_viridis_c(option = "C") +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+aw5 + aw6
 
 
