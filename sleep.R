@@ -13,7 +13,7 @@ library(patchwork) # merge plots
 ## load sleep dataset
 sleep <- read.csv(here('data','sleepdata.csv'))
 sleep <- sleep[-c(10,11,12)] %>% filter(Is.nap == " No") %>% 
-  rename(Duration = Time.in.Bed..mins., 
+  dplyr::rename(Duration = Time.in.Bed..mins., 
                  Awake = Awake.duration..mins.,
                  REM = REM.sleep.duration..mins.,
                  Light = Light.sleep.duration..mins.,
@@ -171,6 +171,7 @@ corr1 <- ggplot(sleep, aes(x = Sleep.quality, y = Duration)) +
        y = "Sleep Duration (minutes)") +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5))
+corr1
 
 ## b. Relationship Between Total Screen time & Sleep Quality
 corr2 <- ggplot(sleep, aes(x = Sleep.quality, y = screen_time)) + 
@@ -181,6 +182,7 @@ corr2 <- ggplot(sleep, aes(x = Sleep.quality, y = screen_time)) +
        y = "Total Screen time (minutes)") +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5))
+corr2
 
 ## c. Relationship Between Mood & Sleep Quality 
 corr3 <- ggplot(sleep, aes(x = Sleep.quality, y = mood_scale)) + 
@@ -191,6 +193,7 @@ corr3 <- ggplot(sleep, aes(x = Sleep.quality, y = mood_scale)) +
        y = "Wake-up Mood Scale") +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5))
+corr3
 
 ## d. Relationship Between Mood & Sleep Duration 
 corr4 <- ggplot(sleep, aes(x = Duration, y = mood_scale)) + 
@@ -201,6 +204,7 @@ corr4 <- ggplot(sleep, aes(x = Duration, y = mood_scale)) +
        y = "Sleep Duration (minutes)") +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5))
+corr4
 
 ### plot multiple plots
 (corr1 + corr2) / (corr3 + corr4) 
