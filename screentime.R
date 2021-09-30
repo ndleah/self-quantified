@@ -195,7 +195,7 @@ c6 <- ggplot(df2) +
   scale_color_brewer(palette = "Dark2", direction = 1) +
   labs(
     y = "Total Screentime (minutes)",
-    title = "Time spent on Creativity",
+    title = "Time spent on Reading",
     color = "Participant"
   ) +
   ggthemes::theme_par() +
@@ -205,8 +205,6 @@ c6 <- ggplot(df2) +
                               hjust = 0.5)
   )
 c6
-
-grid.arrange(c1,c2,c3,c4,c5,c6, ncol=3, nrow=2)
 
 ## 1. Time spent in each category by participant ----
 mdata <- melt(data=df2,
@@ -238,7 +236,6 @@ ggplot(mdata) +
 
 
 ## 2. Total_STime Vs. Total_Pickups ----
-
 ### a. Cersei ----
 ### ST and PC trend overtime
 g1 <- ggplot(cersei, aes(x = Date, y = Total_STime)) +
@@ -345,8 +342,6 @@ g6 <- ggplot(tyrion, aes(x = Date, y = Total_Pickups)) +
        y = "Pickups") +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5))
-
-grid.arrange(g5, g6, nrow=2)
 
 ### Average Screen Time/Phone pick ups
 a5 <- ggplot(tyrion, aes(x = Total_STime)) +
@@ -511,7 +506,6 @@ ggplot(df2, aes(x = Total_Pickups, y = Total_STime)) +
   theme(plot.title = element_text(hjust = 0.5))
 
 ## 4. Time spent distribution along weekdays and weekends by participant ----
-
 ### create new variable
 weekend_weekday <- melt(data=df2,
                         id.vars=
@@ -993,7 +987,7 @@ jaqen_weekend <- jaqen_weekend %>%
   arrange(desc(value)) %>%
   mutate(prop = round(100 * value / sum(value),1))
 # get the position
-pos_oberyn_weekend <- oberyn_weekend %>% 
+pos_jaqen_weekend <- jaqen_weekend %>% 
   mutate(csum = rev(cumsum(rev(value))), 
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
@@ -1457,6 +1451,7 @@ aw6 <- ggballoonplot(tyrion_app, x = "Day_of_Week", y = "app_name", size = "Tota
 ### Plot multiple plots
 aw5 + aw6 + plot_annotation(title = "Tyrion") & 
   theme(plot.title = element_text(hjust = 0.5))
+
 ## e. Jaqen ----
 # create new variable
 jaqen_app <- data.frame(app_name = c(jaqen[,"Top1"], 
