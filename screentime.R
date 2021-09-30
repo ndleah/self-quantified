@@ -1,4 +1,3 @@
-## Load the library ----
 library(tidyverse) # data manipulation
 library(here) # allocate file
 library(dplyr) # data manipulation
@@ -7,7 +6,7 @@ library(ggrepel)
 library(lubridate)
 library(VIM) # tools for the visualization of missing or imputed values
 library(lubridate)
-library(patchwork)
+library(patchwork) # merge plots
 library(xts) # a powerful library that makes work with time series pretty easy
 library(sqldf) # using SQL
 library(reshape)
@@ -15,15 +14,13 @@ library(tibble)
 library(ggpubr) # plot bubble plot
 library(treemapify) #plot treemap visualization
 
-#----------------------------------------------------------------
 # I. Data Wrangling ----
-#----------------------------------------------------------------
-## Load the dataset ----
+
+## Load the dataset
 df <- read.csv(here('data','screentime.csv'))
 glimpse(df)
 
-## convert column format ----
-
+## convert column format
 df <- df[-c(1)] # remove index column
 df$Date <- as.Date(strptime(df$Date, "%d/%m/%Y")) # convert column format to date
 df$Day_of_Week <- as.factor(df$Day_of_Week) # convert column format to factor
@@ -32,19 +29,19 @@ df$First_Pickup[which(df$First_Pickup == "0:05")] <- "12:05 AM"
 df$First_Pickup[which(df$First_Pickup == "1:03")] <- "1:03 AM"
 df$First_Pickup <- format(strptime(df$First_Pickup, "%I:%M %p"), "%H")
 
-## convert string columns ----
+## convert string columns
 df$Aliases <- trimws(df$Aliases)
 
 low_col <-c(13,15,17,19,21,25,27,29,32,34,36)
 df2 <- df %>%
   mutate_at(vars(low_col), funs(tolower(.))) # convert app name columns to lower case
 
-## Check for NA values ----
+## Check for NA values
 missing_data <- summary(aggr(
   df2,prop=TRUE,combined=TRUE, cex.axis=0.4, sortVars=TRUE)
   )
 
-## convert hour to minute column ----
+## convert hour to minute column
 h_col <- c(4:12,14,16,18,20,22)
 df2[h_col] <- round(df2[h_col] * 60)
 
@@ -83,9 +80,7 @@ tormund <- df2 %>% filter(Aliases == "Tormund")
 jaqen <- df2 %>% filter(Aliases == "Jaqen")
 oberyn <- df2 %>% filter(Aliases == "Oberyn")
 
-#----------------------------------------------------------------
 # II. Data Visualization ----
-#----------------------------------------------------------------
 ## Daily screen time by participant
 ggplot(df2) +
   aes(x = Date, y = Total_STime, colour = Aliases) +
@@ -567,7 +562,7 @@ pos_gen_weekend <- gen_weekend %>%
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
 
-### i. weekday - pie chart ----
+### i. weekday - pie chart
 gw1 <- gen_weekdays %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -586,7 +581,7 @@ gw1 <- gen_weekdays %>%
   ggthemes::theme_tufte() +
   theme(plot.title = element_text(size = 15L, hjust = 0.5))
 
-### ii. weekend - pie chart ----
+### ii. weekend - pie chart
 gw2 <- gen_weekend %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -655,7 +650,7 @@ pos_cersei_weekend <- cersei_weekend %>%
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
 
-### i. weekday - pie chart ----
+### i. weekday - pie chart
 cw1 <- cersei_weekdays %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -674,7 +669,7 @@ cw1 <- cersei_weekdays %>%
   ggthemes::theme_tufte() +
   theme(plot.title = element_text(size = 15L, hjust = 0.5))
 
-### ii. weekend - pie chart ----
+### ii. weekend - pie chart
 cw2 <- cersei_weekend %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -697,7 +692,7 @@ cw2 <- cersei_weekend %>%
 (cw1 + cw2) + plot_annotation(title = "Cersei") & 
   theme(plot.title = element_text(hjust = 0.5))
 
-## b. Melisandre ----
+### b. Melisandre ----
 # create weekdays variable
 melisandre_weekdays <- sqldf( # weekdays
   "
@@ -742,7 +737,7 @@ pos_melisandre_weekend <- melisandre_weekend %>%
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
 
-### i. weekday - pie chart ----
+### i. weekday - pie chart
 cw3 <- melisandre_weekdays %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -761,7 +756,7 @@ cw3 <- melisandre_weekdays %>%
   ggthemes::theme_tufte() +
   theme(plot.title = element_text(size = 15L, hjust = 0.5))
 
-### ii. weekend - pie chart ----
+### ii. weekend - pie chart
 cw4 <- melisandre_weekend %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -784,7 +779,7 @@ cw4 <- melisandre_weekend %>%
 (cw3 + cw4) + plot_annotation(title = "Melisandre") & 
   theme(plot.title = element_text(hjust = 0.5))
 
-## c. Tyrion ----
+### c. Tyrion ----
 # create weekdays variable
 tyrion_weekdays <- sqldf( # weekdays
   "
@@ -829,7 +824,7 @@ pos_tyrion_weekend <- tyrion_weekend %>%
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
 
-### i. weekday - pie chart ----
+### i. weekday - pie chart
 cw5 <- tyrion_weekdays %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -848,7 +843,7 @@ cw5 <- tyrion_weekdays %>%
   ggthemes::theme_tufte() +
   theme(plot.title = element_text(size = 15L, hjust = 0.5))
 
-### ii. weekend - pie chart ----
+### ii. weekend - pie chart
 cw6 <- tyrion_weekend %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -871,7 +866,7 @@ cw6 <- tyrion_weekend %>%
 (cw5 + cw6) + plot_annotation(title = "Tyrion") & 
   theme(plot.title = element_text(hjust = 0.5))
 
-## d. Oberyn ----
+### d. Oberyn ----
 # create weekdays variable
 oberyn_weekdays <- sqldf( # weekdays
   "
@@ -916,7 +911,7 @@ pos_oberyn_weekend <- oberyn_weekend %>%
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
 
-### i. weekday - pie chart ----
+### i. weekday - pie chart
 cw7 <- oberyn_weekdays %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -935,7 +930,7 @@ cw7 <- oberyn_weekdays %>%
   ggthemes::theme_tufte() +
   theme(plot.title = element_text(size = 15L, hjust = 0.5))
 
-### ii. weekend - pie chart ----
+### ii. weekend - pie chart
 cw8 <- oberyn_weekend %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -958,7 +953,7 @@ cw8 <- oberyn_weekend %>%
 (cw7 + cw8) + plot_annotation(title = "Oberyn") & 
   theme(plot.title = element_text(hjust = 0.5))
 
-## e. Jaqen ----
+### e. Jaqen ----
 # create weekdays variable
 jaqen_weekdays <- sqldf( # weekdays
   "
@@ -1003,7 +998,7 @@ pos_oberyn_weekend <- oberyn_weekend %>%
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
 
-### i. weekday - pie chart ----
+### i. weekday - pie chart
 cw9 <- jaqen_weekdays %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -1022,7 +1017,7 @@ cw9 <- jaqen_weekdays %>%
   ggthemes::theme_tufte() +
   theme(plot.title = element_text(size = 15L, hjust = 0.5))
 
-### ii. weekend - pie chart ----
+### ii. weekend - pie chart
 cw10 <- jaqen_weekend %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -1045,7 +1040,7 @@ cw10 <- jaqen_weekend %>%
 (cw9 + cw10) + plot_annotation(title = "Jaqen") & 
   theme(plot.title = element_text(hjust = 0.5))
 
-## e. Tormund ----
+### e. Tormund ----
 # create weekdays variable
 tormund_weekdays <- sqldf( # weekdays
   "
@@ -1090,7 +1085,7 @@ pos_tormund_weekend <- tormund_weekend %>%
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
 
-### i. weekday - pie chart ----
+### i. weekday - pie chart
 cw11 <- tormund_weekdays %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -1109,7 +1104,7 @@ cw11 <- tormund_weekdays %>%
   ggthemes::theme_tufte() +
   theme(plot.title = element_text(size = 15L, hjust = 0.5))
 
-### ii. weekend - pie chart ----
+### ii. weekend - pie chart
 cw12 <- tormund_weekend %>% 
   filter(prop > 0.01) %>% # filter out 0% value
   ggplot(aes(x = "", y = value, fill = fct_inorder(category))) + 
@@ -1132,7 +1127,8 @@ cw12 <- tormund_weekend %>%
 (cw11 + cw12) + plot_annotation(title = "Tormund") & 
   theme(plot.title = element_text(hjust = 0.5))
 
-## 5. App with most Screen time Usage
+## 5. App with most Screen time Usage ----
+## General ----
 # create new variable
 app <- data.frame(app_name = c(df2[,"Top1"], df2[,"Top2"], 
                                df2[,"Top3"], df2[,"Top4"], 
@@ -1172,14 +1168,163 @@ app %>%
                     grow = TRUE) +
   theme(plot.title = element_text(size = 15L, hjust = 0.5))
 
+
+## a. Cersei ----
+# create new variable
+cersei_app <- data.frame(app_name = c(cersei[,"Top1"], cersei[,"Top2"], 
+                                      cersei[,"Top3"], cersei[,"Top4"], 
+                                      cersei[,"Top5"]),
+                         Total_STime = c(cersei[,"Top1_T"], cersei[,"Top2_T"], 
+                                         cersei[,"Top3_T"], cersei[,"Top4_T"], 
+                                         cersei[,"Top5_T"]),
+                         DOW = cersei["Day_of_Week"])
+# sum total screen time by app name
+cersei_app <- sqldf(
+  "
+  SELECT
+      app_name,
+      SUM(Total_STime) AS Total_STime,
+      Day_of_Week
+    FROM cersei_app
+    GROUP BY 
+      app_name,
+      Day_of_Week
+    ORDER BY 
+      Day_of_Week,
+      Total_STime DESC
+      "
+)
+
+# order Day Of Week chronically
+cersei_app$Day_of_Week <- ordered(cersei_app$Day_of_Week, 
+                                  levels=c("Mon", "Tue", "Wed", 
+                                           "Thu", "Fri", "Sat","Sun"))
+
+cersei_top10 <- sqldf(
+  "
+  SELECT
+      app_name,
+      SUM(Total_STime) AS Total_STime
+    FROM cersei_app
+    GROUP BY app_name
+    ORDER BY Total_STime DESC
+    LIMIT 10
+      "
+)
+
+### Top 10 Apps with Highest Screentime Usage
+aw1 <- cersei_top10 %>%
+  group_by(app_name) %>%
+  top_n(10, Total_STime)  %>% 
+  ggplot(aes(area = Total_STime, 
+             fill = Total_STime, 
+             label = app_name)) +
+  geom_treemap() +
+  labs(title = "Top 10 Apps with Highest Screentime Usage") +
+  geom_treemap_text(fontface = "italic", 
+                    colour = "white", 
+                    place = "topleft", 
+                    reflow = T,
+                    grow = TRUE) +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+
+### App Screentime Usage by Days of Week
+aw2 <- ggballoonplot(cersei_app, x = "Day_of_Week", y = "app_name", 
+                     size = "Total_STime", fill = "Total_STime",
+                     ggtheme = theme_minimal()) +
+  labs(title = "App Screentime Usage by Days of Week") +
+  scale_fill_viridis_c(option = "C") +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+### Plot multiple plots
+aw1 + aw2 + plot_annotation(title = "Cersei") & 
+  theme(plot.title = element_text(hjust = 0.5))
+
+## b. Melisandre ----
+# create new variable
+melisandre_app <- data.frame(app_name = c(melisandre[,"Top1"], 
+                                          melisandre[,"Top2"], 
+                                          melisandre[,"Top3"], 
+                                          melisandre[,"Top4"], 
+                                          melisandre[,"Top5"]),
+                         Total_STime = c(melisandre[,"Top1_T"], 
+                                         melisandre[,"Top2_T"], 
+                                         melisandre[,"Top3_T"], 
+                                         melisandre[,"Top4_T"], 
+                                         melisandre[,"Top5_T"]),
+                         DOW = melisandre["Day_of_Week"])
+# sum total screen time by app name
+melisandre_app <- sqldf(
+  "
+  SELECT
+      app_name,
+      SUM(Total_STime) AS Total_STime,
+      Day_of_Week
+    FROM melisandre_app
+    GROUP BY 
+      app_name,
+      Day_of_Week
+    ORDER BY 
+      Day_of_Week,
+      Total_STime DESC
+      "
+)
+
+# order Day Of Week chronically
+melisandre_app$Day_of_Week <- ordered(melisandre_app$Day_of_Week, 
+                                  levels=c("Mon", "Tue", "Wed", 
+                                           "Thu", "Fri", "Sat","Sun"))
+
+melisandre_top10 <- sqldf(
+  "
+  SELECT
+      app_name,
+      SUM(Total_STime) AS Total_STime
+    FROM melisandre_app
+    GROUP BY app_name
+    ORDER BY Total_STime DESC
+    LIMIT 10
+      "
+)
+
+### Top 10 Apps with Highest Screentime Usage
+aw1 <- melisandre_top10 %>%
+  group_by(app_name) %>%
+  top_n(10, Total_STime)  %>% 
+  ggplot(aes(area = Total_STime, 
+             fill = Total_STime, 
+             label = app_name)) +
+  geom_treemap() +
+  labs(title = "Top 10 Apps with Highest Screentime Usage") +
+  geom_treemap_text(fontface = "italic", 
+                    colour = "white", 
+                    place = "topleft", 
+                    reflow = T,
+                    grow = TRUE) +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+
+### App Screentime Usage by Days of Week
+aw2 <- ggballoonplot(melisandre_app, x = "Day_of_Week", y = "app_name", size = "Total_STime", fill = "Total_STime",
+                     ggtheme = theme_minimal()) +
+  labs(title = "App Screentime Usage by Days of Week") +
+  scale_fill_viridis_c(option = "C") +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+### Plot multiple plots
+aw1 + aw2 + plot_annotation(title = "Melisandre") & 
+  theme(plot.title = element_text(hjust = 0.5))
+
+## c. Tyrion ----
 # create new variable
 tyrion_app <- data.frame(app_name = c(tyrion[,"Top1"], tyrion[,"Top2"], 
-                               tyrion[,"Top3"], tyrion[,"Top4"], 
-                               tyrion[,"Top5"]),
+                                      tyrion[,"Top3"], tyrion[,"Top4"], 
+                                      tyrion[,"Top5"]),
                          Total_STime = c(tyrion[,"Top1_T"], tyrion[,"Top2_T"], 
                                          tyrion[,"Top3_T"], tyrion[,"Top4_T"], 
                                          tyrion[,"Top5_T"]),
-                          DOW = tyrion["Day_of_Week"])
+                         DOW = tyrion["Day_of_Week"])
 # sum total screen time by app name
 tyrion_app <- sqldf(
   "
@@ -1214,7 +1359,7 @@ tyrion_top10 <- sqldf(
       "
 )
 
-### Top 10 Apps with Highest Screentime Usage ----
+### Top 10 Apps with Highest Screentime Usage
 aw5 <- tyrion_top10 %>%
   group_by(app_name) %>%
   top_n(10, Total_STime)  %>% 
@@ -1231,13 +1376,236 @@ aw5 <- tyrion_top10 %>%
   theme(plot.title = element_text(size = 15L, hjust = 0.5))
 
 
-### App Screentime Usage by Days of Week ----
+### App Screentime Usage by Days of Week
 aw6 <- ggballoonplot(tyrion_app, x = "Day_of_Week", y = "app_name", size = "Total_STime", fill = "Total_STime",
+                     ggtheme = theme_minimal()) +
+  labs(title = "App Screentime Usage by Days of Week") +
+  scale_fill_viridis_c(option = "C") +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+### Plot multiple plots
+aw5 + aw6 + plot_annotation(title = "Tyrion") & 
+  theme(plot.title = element_text(hjust = 0.5))
+
+## d. Oberyn ----
+# create new variable
+tyrion_app <- data.frame(app_name = c(tyrion[,"Top1"], tyrion[,"Top2"], 
+                                      tyrion[,"Top3"], tyrion[,"Top4"], 
+                                      tyrion[,"Top5"]),
+                         Total_STime = c(tyrion[,"Top1_T"], tyrion[,"Top2_T"], 
+                                         tyrion[,"Top3_T"], tyrion[,"Top4_T"], 
+                                         tyrion[,"Top5_T"]),
+                         DOW = tyrion["Day_of_Week"])
+# sum total screen time by app name
+tyrion_app <- sqldf(
+  "
+  SELECT
+      app_name,
+      SUM(Total_STime) AS Total_STime,
+      Day_of_Week
+    FROM tyrion_app
+    GROUP BY 
+      app_name,
+      Day_of_Week
+    ORDER BY 
+      Day_of_Week,
+      Total_STime DESC
+      "
+)
+
+# order Day Of Week chronically
+tyrion_app$Day_of_Week <- ordered(tyrion_app$Day_of_Week, 
+                                  levels=c("Mon", "Tue", "Wed", 
+                                           "Thu", "Fri", "Sat","Sun"))
+
+tyrion_top10 <- sqldf(
+  "
+  SELECT
+      app_name,
+      SUM(Total_STime) AS Total_STime
+    FROM tyrion_app
+    GROUP BY app_name
+    ORDER BY Total_STime DESC
+    LIMIT 10
+      "
+)
+
+### Top 10 Apps with Highest Screentime Usage
+aw5 <- tyrion_top10 %>%
+  group_by(app_name) %>%
+  top_n(10, Total_STime)  %>% 
+  ggplot(aes(area = Total_STime, 
+             fill = Total_STime, 
+             label = app_name)) +
+  geom_treemap() +
+  labs(title = "Top 10 Apps with Highest Screentime Usage") +
+  geom_treemap_text(fontface = "italic", 
+                    colour = "white", 
+                    place = "topleft", 
+                    reflow = T,
+                    grow = TRUE) +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+
+### App Screentime Usage by Days of Week
+aw6 <- ggballoonplot(tyrion_app, x = "Day_of_Week", y = "app_name", size = "Total_STime", fill = "Total_STime",
+                     ggtheme = theme_minimal()) +
+  labs(title = "App Screentime Usage by Days of Week") +
+  scale_fill_viridis_c(option = "C") +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+### Plot multiple plots
+aw5 + aw6 + plot_annotation(title = "Tyrion") & 
+  theme(plot.title = element_text(hjust = 0.5))
+## e. Jaqen ----
+# create new variable
+jaqen_app <- data.frame(app_name = c(jaqen[,"Top1"], 
+                                     jaqen[,"Top2"],
+                                     jaqen[,"Top3"], 
+                                     jaqen[,"Top4"], 
+                                     jaqen[,"Top5"]),
+                          Total_STime = c(jaqen[,"Top1_T"], 
+                                          jaqen[,"Top2_T"], 
+                                          jaqen[,"Top3_T"], 
+                                          jaqen[,"Top4_T"], 
+                                          jaqen[,"Top5_T"]),
+                          DOW = jaqen["Day_of_Week"])
+# sum total screen time by app name
+jaqen_app <- sqldf(
+  "
+  SELECT
+      app_name,
+      SUM(Total_STime) AS Total_STime,
+      Day_of_Week
+    FROM jaqen_app
+    GROUP BY 
+      app_name,
+      Day_of_Week
+    ORDER BY 
+      Day_of_Week,
+      Total_STime DESC
+      "
+)
+
+# order Day Of Week chronically
+jaqen_app$Day_of_Week <- ordered(jaqen_app$Day_of_Week, 
+                                   levels=c("Mon", "Tue", "Wed", 
+                                            "Thu", "Fri", "Sat","Sun"))
+
+jaqen_top10 <- sqldf(
+  "
+  SELECT
+      app_name,
+      SUM(Total_STime) AS Total_STime
+    FROM jaqen_app
+    GROUP BY app_name
+    ORDER BY Total_STime DESC
+    LIMIT 10
+      "
+)
+
+### Top 10 Apps with Highest Screentime Usage
+aw9 <- jaqen_top10 %>%
+  group_by(app_name) %>%
+  top_n(10, Total_STime)  %>% 
+  ggplot(aes(area = Total_STime, 
+             fill = Total_STime, 
+             label = app_name)) +
+  geom_treemap() +
+  labs(title = "Top 10 Apps with Highest Screentime Usage") +
+  geom_treemap_text(fontface = "italic", 
+                    colour = "white", 
+                    place = "topleft", 
+                    reflow = T,
+                    grow = TRUE) +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+
+### App Screentime Usage by Days of Week
+aw10 <- ggballoonplot(jaqen_app, x = "Day_of_Week", y = "app_name", size = "Total_STime", fill = "Total_STime",
+                      ggtheme = theme_minimal()) +
+  labs(title = "App Screentime Usage by Days of Week") +
+  scale_fill_viridis_c(option = "C") +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+### Plot multiple plots
+aw9 + aw10 + plot_annotation(title = "Jaqen") & 
+  theme(plot.title = element_text(hjust = 0.5))
+
+## f. Tormund ----
+# create new variable
+tormund_app <- data.frame(app_name = c(tormund[,"Top1"], 
+                                       tormund[,"Top2"],
+                                       tormund[,"Top3"], 
+                                       tormund[,"Top4"], 
+                                       tormund[,"Top5"]),
+                         Total_STime = c(tormund[,"Top1_T"], 
+                                         tormund[,"Top2_T"], 
+                                         tormund[,"Top3_T"], 
+                                         tormund[,"Top4_T"], 
+                                         tormund[,"Top5_T"]),
+                          DOW = tormund["Day_of_Week"])
+# sum total screen time by app name
+tormund_app <- sqldf(
+  "
+  SELECT
+      app_name,
+      SUM(Total_STime) AS Total_STime,
+      Day_of_Week
+    FROM tormund_app
+    GROUP BY 
+      app_name,
+      Day_of_Week
+    ORDER BY 
+      Day_of_Week,
+      Total_STime DESC
+      "
+)
+
+# order Day Of Week chronically
+tormund_app$Day_of_Week <- ordered(tormund_app$Day_of_Week, 
+                                  levels=c("Mon", "Tue", "Wed", 
+                                           "Thu", "Fri", "Sat","Sun"))
+
+tormund_top10 <- sqldf(
+  "
+  SELECT
+      app_name,
+      SUM(Total_STime) AS Total_STime
+    FROM tormund_app
+    GROUP BY app_name
+    ORDER BY Total_STime DESC
+    LIMIT 10
+      "
+)
+
+### Top 10 Apps with Highest Screentime Usage
+aw11 <- tormund_top10 %>%
+  group_by(app_name) %>%
+  top_n(10, Total_STime)  %>% 
+  ggplot(aes(area = Total_STime, 
+             fill = Total_STime, 
+             label = app_name)) +
+  geom_treemap() +
+  labs(title = "Top 10 Apps with Highest Screentime Usage") +
+  geom_treemap_text(fontface = "italic", 
+                    colour = "white", 
+                    place = "topleft", 
+                    reflow = T,
+                    grow = TRUE) +
+  theme(plot.title = element_text(size = 15L, hjust = 0.5))
+
+
+### App Screentime Usage by Days of Week
+aw12 <- ggballoonplot(tormund_app, x = "Day_of_Week", y = "app_name", 
+                      size = "Total_STime", fill = "Total_STime",
               ggtheme = theme_minimal()) +
   labs(title = "App Screentime Usage by Days of Week") +
   scale_fill_viridis_c(option = "C") +
   theme(plot.title = element_text(size = 15L, hjust = 0.5))
 
-aw5 + aw6
+### Plot multiple plots
+aw11 + aw12 + plot_annotation(title = "Tormund") & 
+  theme(plot.title = element_text(hjust = 0.5))
 
 
