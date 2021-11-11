@@ -8,6 +8,7 @@ library(zoo) # assign mean to NaN values
 library(VIM) # tools for the visualization of missing or imputed values
 library(sqldf) # using SQL
 library(patchwork) # merge plots
+library(DataExplorer) # for faster EDA plotting  
 
 # I. Data Wrangling ----
 ## load sleep dataset
@@ -208,4 +209,6 @@ corr4
 
 ### plot multiple plots
 (corr1 + corr2) / (corr3 + corr4) 
+sleep_corr <- sleep[-c(1:2,4,15)]
+plot_correlation(na.omit(sleep_corr), maxcat = 5L)
 

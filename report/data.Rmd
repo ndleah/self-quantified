@@ -1,0 +1,11 @@
+---
+title: ''
+output: pdf_document
+---
+
+
+# Data
+
+With a design for understanding multifacets of QS tracking, we approach range of variables, from physical activities, psychological to social and environmental aspects. Inspired by a project named Sen.se, an experiment to find linkage between social interaction and mood (Swan, 2013), we take emotions as our outcome value and try to find the correlation with multiple variables as steps or weather. There are few articles provides evidence about a positive relation between short walks and mood (Ekkekakis, Hall, et al., 2000), or weather and mood (Denissen et al., 2008) which is a good reference.
+
+Summary of our datasets, measures and method

@@ -12,7 +12,8 @@ library(sqldf) # using SQL
 library(reshape)
 library(tibble)
 library(ggpubr) # plot bubble plot
-library(treemapify) #plot treemap visualization
+library(treemapify) # plot treemap visualization
+
 
 # I. Data Wrangling ----
 
@@ -37,6 +38,16 @@ df2 <- df %>%
   mutate_at(vars(low_col), funs(tolower(.))) # convert app name columns to lower case
 
 ## Check for NA values
+plot_missing(df)
+
+ggplot(data = df, aes(x=Score,y=value, fill=Score)) + 
+  geom_boxplot()+
+  scale_fill_brewer(palette="Green") + 
+  geom_jitter(shape=16, position=position_jitter(0.2))+
+  labs(title = 'Did males perform better than females?',
+       y='Scores',x='Test Type')
+
+
 missing_data <- summary(aggr(
   df2,prop=TRUE,combined=TRUE, cex.axis=0.4, sortVars=TRUE)
   )
@@ -96,6 +107,45 @@ ggplot(df2) +
     legend.position = "bottom",
     plot.title = element_text(size = 15L,
                               hjust = 0.5)
+  )
+
+## Average screen time by participant
+avg_screentime <- sqldf(
+  "
+  SELECT
+    Aliases,
+    ROUND(AVG(Total_STime),2) AS avg
+    FROM df
+    GROUP BY Aliases
+  "
+)
+# Add large cohort data
+avg_screentime[nrow(avg_screentime) + 1,] = c("Avg Aussie",5.50)
+avg_screentime$avg = avg_screentime$avg %>% as.numeric()
+
+# bar plot
+ggplot(avg_screentime) +
+  aes(x = Aliases, fill = Aliases, weight = avg) +
+  geom_bar() +
+  scale_fill_manual(
+    values = c(`Avg Aussie` = "#FB1E0F",
+               Cersei = "#FFA409",
+               Jaqen = "#FFA409",
+               Melisandre = "#FFA409",
+               Oberyn = "#FFA409",
+               Tormund = "#FFA409",
+               Tyrion = "#FFA409")
+  ) +
+  labs(
+    title = "Average Screentime",
+    subtitle = "Group Sample Vs. Large Cohort Data"
+  ) +
+  ggthemes::theme_par() +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 15L,
+                              hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
   )
 
 ## Time spent on Social
@@ -1383,21 +1433,21 @@ aw5 + aw6 + plot_annotation(title = "Tyrion") &
 
 ## d. Oberyn ----
 # create new variable
-tyrion_app <- data.frame(app_name = c(tyrion[,"Top1"], tyrion[,"Top2"], 
-                                      tyrion[,"Top3"], tyrion[,"Top4"], 
-                                      tyrion[,"Top5"]),
-                         Total_STime = c(tyrion[,"Top1_T"], tyrion[,"Top2_T"], 
-                                         tyrion[,"Top3_T"], tyrion[,"Top4_T"], 
-                                         tyrion[,"Top5_T"]),
-                         DOW = tyrion["Day_of_Week"])
+oberyn_app <- data.frame(app_name = c(oberyn[,"Top1"], oberyn[,"Top2"], 
+                                      oberyn[,"Top3"], oberyn[,"Top4"], 
+                                      oberyn[,"Top5"]),
+                         Total_STime = c(oberyn[,"Top1_T"], oberyn[,"Top2_T"], 
+                                         oberyn[,"Top3_T"], oberyn[,"Top4_T"], 
+                                         oberyn[,"Top5_T"]),
+                         DOW = oberyn["Day_of_Week"])
 # sum total screen time by app name
-tyrion_app <- sqldf(
+oberyn_app <- sqldf(
   "
   SELECT
       app_name,
       SUM(Total_STime) AS Total_STime,
       Day_of_Week
-    FROM tyrion_app
+    FROM oberyn_app
     GROUP BY 
       app_name,
       Day_of_Week
@@ -1408,11 +1458,11 @@ tyrion_app <- sqldf(
 )
 
 # order Day Of Week chronically
-tyrion_app$Day_of_Week <- ordered(tyrion_app$Day_of_Week, 
+oberyn_app$Day_of_Week <- ordered(oberyn_app$Day_of_Week, 
                                   levels=c("Mon", "Tue", "Wed", 
                                            "Thu", "Fri", "Sat","Sun"))
 
-tyrion_top10 <- sqldf(
+oberyn_top10 <- sqldf(
   "
   SELECT
       app_name,
@@ -1425,7 +1475,7 @@ tyrion_top10 <- sqldf(
 )
 
 ### Top 10 Apps with Highest Screentime Usage
-aw5 <- tyrion_top10 %>%
+aw7 <- oberyn_top10 %>%
   group_by(app_name) %>%
   top_n(10, Total_STime)  %>% 
   ggplot(aes(area = Total_STime, 
@@ -1442,14 +1492,14 @@ aw5 <- tyrion_top10 %>%
 
 
 ### App Screentime Usage by Days of Week
-aw6 <- ggballoonplot(tyrion_app, x = "Day_of_Week", y = "app_name", size = "Total_STime", fill = "Total_STime",
+aw8 <- ggballoonplot(oberyn_app, x = "Day_of_Week", y = "app_name", size = "Total_STime", fill = "Total_STime",
                      ggtheme = theme_minimal()) +
   labs(title = "App Screentime Usage by Days of Week") +
   scale_fill_viridis_c(option = "C") +
   theme(plot.title = element_text(size = 15L, hjust = 0.5))
 
 ### Plot multiple plots
-aw5 + aw6 + plot_annotation(title = "Tyrion") & 
+aw7 + aw8 + plot_annotation(title = "Oberyn") & 
   theme(plot.title = element_text(hjust = 0.5))
 
 ## e. Jaqen ----
@@ -1602,5 +1652,7 @@ aw12 <- ggballoonplot(tormund_app, x = "Day_of_Week", y = "app_name",
 ### Plot multiple plots
 aw11 + aw12 + plot_annotation(title = "Tormund") & 
   theme(plot.title = element_text(hjust = 0.5))
+
+
 
 
