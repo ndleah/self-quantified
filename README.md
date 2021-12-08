@@ -4,7 +4,7 @@
 [![View Repositories](https://img.shields.io/badge/View-My_Repositories-blue?logo=GitHub)](https://github.com/ndleah?tab=repositories)
 
 
-# Statistics Learning <img src="https://i.pinimg.com/originals/31/18/30/311830d3bffd51f0c90fe47650cc4da5.png" align="right" width="150"/>
+# Self-quantified Project <img src="https://i.pinimg.com/originals/31/18/30/311830d3bffd51f0c90fe47650cc4da5.png" align="right" width="150"/>
 
  > This project is designed to give me the experience in collecting, working and analyzing my personal data in the duration of 6-week observation started from August 2021 as part of my master subject assignment at **University of Technology Sydney**. 
 
