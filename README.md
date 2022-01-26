@@ -8,10 +8,10 @@
 
  > This project is designed to give me the experience in collecting, working and analyzing my personal data in the duration of 6-week observation started from August 2021 as part of my master subject assignment at **University of Technology Sydney**. 
 
-![Issues](https://img.shields.io/github/issues/ndleah/self-quantified-data-analysis?style=social&logo=github)
-![Pull Requests](https://img.shields.io/github/issues-pr/ndleah/self-quantified-data-analysis?style=social&logo=github)
-![Forks](https://img.shields.io/github/forks/ndleah/self-quantified-data-analysis?style=social&logo=github)
-![Stars](https://img.shields.io/github/stars/ndleah/self-quantified-data-analysis?style=social&logo=github)
+![Issues](https://img.shields.io/github/issues/ndleah/self-quantified?style=social&logo=github)
+![Pull Requests](https://img.shields.io/github/issues-pr/ndleah/self-quantified?style=social&logo=github)
+![Forks](https://img.shields.io/github/forks/ndleah/self-quantified?style=social&logo=github)
+![Stars](https://img.shields.io/github/stars/ndleah/self-quantified?style=social&logo=github)
 
 ## 🔧 Description
 
