@@ -109,6 +109,28 @@ ggplot(df2) +
                               hjust = 0.5)
   )
 
+
+library(ggplot2)
+
+ggplot(time_series_df) +
+ aes(x = date, y = average_amount) +
+ geom_line(size = 0.7, colour = "#440154") +
+ geom_smooth(span = 0.58) +
+ labs(y = "Total monthly amount") +
+ ggthemes::theme_few() +
+ theme(plot.title = element_text(size = 15L, 
+ hjust = 0.5), axis.title.y = element_text(size = 15L))
+
+ggplot(time_series_df) +
+ aes(x = date, y = transaction_count) +
+ geom_point(shape = "circle", size = 3.45, 
+ colour = "#FF058F") +
+ geom_smooth(span = 0.1) +
+ labs(y = "Number of transactions") +
+ ggthemes::theme_base() +
+ theme(plot.title = element_text(size = 15L, hjust = 0.5), axis.title.y = element_text(size = 15L))
+
+
 ## Average screen time by participant
 avg_screentime <- sqldf(
   "
